@@ -57,5 +57,5 @@ La especificación de la API viene en **openapi.yml**. Los requisitos detallados
 
 - **README.MD** – Enunciado y requisitos de la prueba (sin modificar).
 - **openapi.yml** – Especificación de la API.
-- **doc/dev-doc.md** – Documentación técnica completa (archivos, librerías, flujos) para desarrolladores.
+- **README.md** – Documentación técnica completa (archivos, librerías, flujos) para desarrolladores.
 - **doc/CONTEXT.md** – Este documento (contexto para el evaluador).
