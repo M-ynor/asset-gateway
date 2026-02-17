@@ -1,0 +1,269 @@
+openapi: 3.0.3
+info:
+  title: BHD Document Asset Gateway
+  description: |-
+    This API defines internal operations for managing document uploads (proxy/gateway) and searching uploaded documents
+    based on persisted metadata. The service orchestrates an asynchronous upload to an internal publisher/storage and
+    keeps metadata for traceability and auditing.
+  contact:
+    email: noreply@bhd.com.do
+  version: 1.0.0
+
+tags:
+  - name: document
+
+paths:
+  /api/bhd/mgmt/1/documents/actions/upload:
+    post:
+      tags:
+        - document
+      summary: Accepts a document upload request and triggers an asynchronous upload process.
+      description: |-
+        Receives the document payload, persists metadata, and delegates the upload to an internal publisher asynchronously.
+        This service is not the final repository of the document.
+      operationId: uploadDocument
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentUploadRequest'
+      responses:
+        '202':
+          description: The operation was accepted and will be processed asynchronously.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentUploadResponse'
+        '400':
+          description: Invalid request.
+        '500':
+          description: An unexpected error occurred.
+
+  /api/bhd/mgmt/1/documents/:
+    get:
+      tags:
+        - document
+      summary: Search and filter uploaded documents based on persisted metadata.
+      description: Search and filter uploaded documents based on persisted metadata. Sorting is mandatory.
+      operationId: searchDocuments
+      parameters:
+        - $ref: '#/components/parameters/UploadDateStart'
+        - $ref: '#/components/parameters/UploadDateEnd'
+        - $ref: '#/components/parameters/Filename'
+        - $ref: '#/components/parameters/ContentType'
+        - $ref: '#/components/parameters/DocumentType'
+        - $ref: '#/components/parameters/Status'
+        - $ref: '#/components/parameters/CustomerId'
+        - $ref: '#/components/parameters/Channel'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortDirection'
+      responses:
+        '200':
+          description: Returns a list of documents matching the provided criteria.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentAsset'
+        '400':
+          description: Invalid request.
+        '500':
+          description: An unexpected error occurred.
+
+components:
+  parameters:
+    UploadDateStart:
+      name: uploadDateStart
+      in: query
+      required: false
+      description: Start date/time (inclusive) for filtering by upload date.
+      schema:
+        type: string
+        format: date-time
+
+    UploadDateEnd:
+      name: uploadDateEnd
+      in: query
+      required: false
+      description: End date/time (inclusive) for filtering by upload date.
+      schema:
+        type: string
+        format: date-time
+
+    Filename:
+      name: filename
+      in: query
+      required: false
+      description: Filter by original filename (partial match implementation is allowed).
+      schema:
+        type: string
+
+    ContentType:
+      name: contentType
+      in: query
+      required: false
+      description: Filter by MIME type (IANA).
+      schema:
+        type: string
+
+    DocumentType:
+      name: documentType
+      in: query
+      required: false
+      description: Filter by business document type.
+      schema:
+        $ref: '#/components/schemas/DocumentType'
+
+    Status:
+      name: status
+      in: query
+      required: false
+      description: Filter by processing status.
+      schema:
+        $ref: '#/components/schemas/DocumentStatus'
+
+    CustomerId:
+      name: customerId
+      in: query
+      required: false
+      description: Filter by customer identifier associated to the document.
+      schema:
+        type: string
+
+    Channel:
+      name: channel
+      in: query
+      required: false
+      description: Filter by source channel.
+      schema:
+        $ref: '#/components/schemas/Channel'
+
+    SortBy:
+      name: sortBy
+      in: query
+      required: true
+      description: Sorting field. Mandatory.
+      schema:
+        type: string
+        enum:
+          - uploadDate
+          - filename
+          - documentType
+          - status
+
+    SortDirection:
+      name: sortDirection
+      in: query
+      required: false
+      description: Sorting direction.
+      schema:
+        type: string
+        enum: [ASC, DESC]
+        default: ASC
+
+  schemas:
+    DocumentType:
+      type: string
+      description: Business classification for the uploaded document.
+      enum:
+        - KYC
+        - CONTRACT
+        - FORM
+        - SUPPORTING_DOCUMENT
+        - OTHER
+
+    Channel:
+      type: string
+      description: Source channel that initiated the upload.
+      enum:
+        - BRANCH
+        - DIGITAL
+        - BACKOFFICE
+        - OTHER
+
+    DocumentStatus:
+      type: string
+      description: Processing status of the asynchronous upload orchestration.
+      enum:
+        - RECEIVED
+        - SENT
+        - FAILED
+
+    DocumentAsset:
+      type: object
+      description: Represents a document asset and its persisted metadata.
+      properties:
+        id:
+          type: string
+          description: Unique document identifier.
+        filename:
+          type: string
+          description: Original filename associated to the uploaded document.
+        contentType:
+          type: string
+          description: MIME type (IANA).
+        documentType:
+          $ref: '#/components/schemas/DocumentType'
+        channel:
+          $ref: '#/components/schemas/Channel'
+        customerId:
+          type: string
+          description: Customer identifier associated to the document (if applicable).
+        status:
+          $ref: '#/components/schemas/DocumentStatus'
+        url:
+          type: string
+          description: URL or reference returned by the internal publisher/storage (if available).
+        size:
+          type: integer
+          description: File size in bytes.
+        uploadDate:
+          type: string
+          format: date-time
+          description: Date & time the document was received by this service.
+        correlationId:
+          type: string
+          description: Correlation identifier for tracing across systems.
+
+    DocumentUploadRequest:
+      type: object
+      description: Represents a document upload request.
+      required:
+        - filename
+        - encodedFile
+        - contentType
+        - documentType
+        - channel
+      properties:
+        filename:
+          type: string
+          example: contract_123.pdf
+          description: The filename associated to the document being uploaded.
+        encodedFile:
+          type: string
+          format: byte
+          description: The document content encoded as base64.
+        contentType:
+          type: string
+          example: application/pdf
+          description: The file type according to the MIME type (IANA) definition.
+        documentType:
+          $ref: '#/components/schemas/DocumentType'
+        channel:
+          $ref: '#/components/schemas/Channel'
+        customerId:
+          type: string
+          description: Customer identifier associated to the document (optional).
+        correlationId:
+          type: string
+          description: Correlation identifier for tracing across systems (optional).
+
+    DocumentUploadResponse:
+      type: object
+      description: Represents a document upload acceptance response.
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the accepted document upload.

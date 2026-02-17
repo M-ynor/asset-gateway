@@ -1,0 +1,29 @@
+spring:
+  r2dbc:
+    url: r2dbc:h2:mem:///documents?options=DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  codec:
+    max-in-memory-size: 16MB
+  threads:
+    virtual:
+      enabled: true
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+resilience4j:
+  retry:
+    instances:
+      documentPublisher:
+        maxAttempts: 3
+        waitDuration: 500ms
+  circuitbreaker:
+    instances:
+      documentPublisher:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 5s

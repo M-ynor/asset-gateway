@@ -1,0 +1,50 @@
+{
+  "info": {
+    "name": "BHD Document Gateway",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Upload Document",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Basic YmhkOmJoZC1zZWNyZXQ="}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"filename\": \"contract_123.pdf\",\n  \"encodedFile\": \"Y29udGVudA==\",\n  \"contentType\": \"application/pdf\",\n  \"documentType\": \"CONTRACT\",\n  \"channel\": \"DIGITAL\",\n  \"customerId\": \"cust-001\",\n  \"correlationId\": \"corr-001\"\n}"
+        },
+        "url": "http://localhost:8080/api/bhd/mgmt/1/documents/actions/upload"
+      }
+    },
+    {
+      "name": "Search Documents",
+      "request": {
+        "method": "GET",
+        "header": [
+          {"key": "Authorization", "value": "Basic YmhkOmJoZC1zZWNyZXQ="}
+        ],
+        "url": {
+          "raw": "http://localhost:8080/api/bhd/mgmt/1/documents?sortBy=uploadDate&sortDirection=ASC",
+          "host": ["http://localhost:8080"],
+          "path": ["api", "bhd", "mgmt", "1", "documents"],
+          "query": [
+            {"key": "id", "value": "", "disabled": true, "description": "Filter by document id"},
+            {"key": "sortBy", "value": "uploadDate", "disabled": false, "description": "Optional, default uploadDate"},
+            {"key": "sortDirection", "value": "ASC"},
+            {"key": "uploadDateStart", "value": "", "disabled": true},
+            {"key": "uploadDateEnd", "value": "", "disabled": true},
+            {"key": "filename", "value": "", "disabled": true},
+            {"key": "contentType", "value": "", "disabled": true},
+            {"key": "documentType", "value": "", "disabled": true},
+            {"key": "status", "value": "", "disabled": true},
+            {"key": "customerId", "value": "", "disabled": true},
+            {"key": "channel", "value": "", "disabled": true}
+          ]
+        }
+      }
+    }
+  ]
+}
