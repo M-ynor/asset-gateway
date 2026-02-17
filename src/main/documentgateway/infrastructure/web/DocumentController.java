@@ -40,7 +40,15 @@ public class DocumentController {
     public Mono<org.springframework.http.ResponseEntity<com.bhd.documentgateway.domain.DocumentUploadResponse>> upload(
             @Valid @RequestBody DocumentUploadRequest request) {
         return uploadDocumentService.upload(request)
-                .map(response -> org.springframework.http.ResponseEntity.status(HttpStatus.ACCEPTED).body(response));
+                .map(response -> {
+                    var body = org.springframework.http.ResponseEntity.<com.bhd.documentgateway.domain.DocumentUploadResponse>status(HttpStatus.ACCEPTED).body(response);
+                    if (request.correlationId() != null && !request.correlationId().isBlank()) {
+                        return org.springframework.http.ResponseEntity.<com.bhd.documentgateway.domain.DocumentUploadResponse>status(HttpStatus.ACCEPTED)
+                                .header("X-Correlation-Id", request.correlationId())
+                                .body(response);
+                    }
+                    return body;
+                });
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)

@@ -7,3 +7,9 @@ services:
       SPRING_R2DBC_URL: r2dbc:h2:mem:///documents?options=DB_CLOSE_DELAY=-1
       SPRING_R2DBC_USERNAME: sa
       SPRING_R2DBC_PASSWORD: ""
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/actuator/health", "||", "exit", "1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s

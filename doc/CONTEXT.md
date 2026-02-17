@@ -25,6 +25,13 @@ La especificación de la API viene en **openapi.yml**. Los requisitos detallados
 - **Requisitos cubiertos:** Todos los filtros del OpenAPI, ordenación obligatoria, persistencia (H2), tests unitarios e integración, Docker, seguridad (HTTP Basic), resiliencia (Resilience4j), documentación visual (Swagger UI), colección Postman.
 - **Ejecución:** Una sola orden para levantar la app, sin servicios externos ni configuración manual (Docker o Maven).
 
+**Detalles incluidos:**  
+- **Actuator:** health e info en `/actuator/health` y `/actuator/info` (públicos para orquestación).  
+- **Healthcheck en Docker:** el servicio `app` tiene healthcheck contra Actuator para readiness.  
+- **Manejo de errores:** `@RestControllerAdvice` con respuestas de error consistentes (validación → 400 con detalle de campos; resto → 500 con mensaje estable).  
+- **Trazabilidad:** si el cliente envía `correlationId` en el upload, la respuesta incluye el header `X-Correlation-Id`.  
+- **Resiliencia:** retry y circuit breaker (Resilience4j) en la llamada al publisher.
+
 ---
 
 ## Cómo ejecutar y probar
@@ -59,3 +66,9 @@ La especificación de la API viene en **openapi.yml**. Los requisitos detallados
 - **openapi.yml** – Especificación de la API.
 - **README.md** – Documentación técnica completa (archivos, librerías, flujos) para desarrolladores.
 - **doc/CONTEXT.md** – Este documento (contexto para el evaluador).
+
+---
+
+## Consideraciones para producción (no implementadas en la prueba)
+
+En un entorno real se valoraría: base de datos externa (PostgreSQL con R2DBC), gestión de secretos (variables de entorno o vault), métricas (Prometheus/Micrometer), logging estructurado con correlation-id en MDC, rate limiting, paginación en el listado de documentos, y pruebas de carga.
